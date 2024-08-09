@@ -51,32 +51,89 @@ INSERT INTO B (ID, Parent, Child) VALUES
 SELECT * FROM B;
 
 
-WITH RECURSIVE CTE AS (
-    -- Base case: select root paths from B and A
-    SELECT 
+WITH RECURSIVE PathCTE AS (
+    -- Base case: Start with root paths (where Parent is NULL)
+    SELECT
         B.ID,
-        B.Child AS ChildID,
-        A.Name AS Path
-    FROM 
+        B.Child AS volumeID,
+        B.Parent AS parentVolumeID,
+        A.name AS volumeName,
+        CAST(A.name AS CHAR(255)) AS path
+    FROM
         B
-    JOIN 
+    JOIN
         A ON B.Child = A.ID
-    WHERE 
+    WHERE
         B.Parent IS NULL
 
     UNION ALL
 
-    -- Recursive case: build paths
+    -- Recursive case: Append children to paths
     SELECT
         B.ID,
-        B.Child AS ChildID,
-        CONCAT(CTE.Path, '\\', A.Name) AS Path
-    FROM 
+        B.Child AS volumeID,
+        B.Parent AS parentVolumeID,
+        A.name AS volumeName,
+        CONCAT(cte.path, '\\', A.name) AS path
+    FROM
         B
-    JOIN 
-        CTE ON B.Parent = CTE.ChildID
-    JOIN 
+    JOIN
         A ON B.Child = A.ID
+    JOIN
+        PathCTE cte ON B.Parent = cte.volumeID
 )
-SELECT Path FROM CTE;
+SELECT
+    ROW_NUMBER() OVER (ORDER BY path) AS path_id,
+    path
+FROM
+    (SELECT DISTINCT path FROM PathCTE) AS distinct_paths
+    
+ORDER BY
+    path;
+
+
+WITH RECURSIVE PathCTE AS (
+    -- Base case: Start with root paths (where Parent is NULL)
+    SELECT
+        B.ID,
+        B.Child AS volumeID,
+        B.Parent AS parentVolumeID,
+        A.name AS volumeName,
+        CAST(A.name AS CHAR(255)) AS path
+    FROM
+        B
+    JOIN
+        A ON B.Child = A.ID
+    WHERE
+        B.Parent IS NULL
+
+    UNION ALL
+
+    -- Recursive case: Append children to paths
+    SELECT
+        B.ID,
+        B.Child AS volumeID,
+        B.Parent AS parentVolumeID,
+        A.name AS volumeName,
+        CONCAT(cte.path, '\\', A.name) AS path
+    FROM
+        B
+    JOIN
+        A ON B.Child = A.ID
+    JOIN
+        PathCTE cte ON B.Parent = cte.volumeID
+)
+-- First, generate the row numbers
+SELECT *
+FROM (
+    SELECT
+        ROW_NUMBER() OVER (ORDER BY path) AS path_id,
+        path
+    FROM
+        (SELECT DISTINCT path FROM PathCTE) AS distinct_paths
+) AS numbered_paths
+-- Then, filter by the path_id
+WHERE
+    path_id = 5;  -- Replace with the desired path_id
+
 ```
