@@ -1,5 +1,6 @@
 # aminet
 
+```sql
 CREATE TABLE A (
     id INT PRIMARY KEY,
     name VARCHAR(50)
@@ -78,3 +79,4 @@ WITH RECURSIVE CTE AS (
         A ON B.Child = A.ID
 )
 SELECT Path FROM CTE;
+```
