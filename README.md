@@ -30,21 +30,23 @@ CREATE TABLE B (
 );
 
 -- Insert relationships into table B
+-- Insert hierarchical relationships into table B
 INSERT INTO B (ID, Parent, Child) VALUES 
-(1, NULL, 2),       -- Amiga Workbench
-(2, NULL, 3),       -- Commodore
-(3, NULL, 4),       -- Escom
-(4, 2, 5),          -- Amiga Workbench -> Alt Release
-(5, 2, 6),          -- Amiga Workbench -> Alt Release 2
-(6, 2, 8),          -- Amiga Workbench -> A4000T
-(7, 2, 7),          -- Amiga Workbench -> HDD Installer
-(8, 3, 8),          -- Commodore -> A4000T
-(9, 3, 5),          -- Commodore -> Alt Release
-(10, 4, 8),         -- Escom -> A4000T
-(11, 4, 5),         -- Escom -> Alt Release
-(12, 5, 8),         -- Alt Release -> A4000T (For all)
-(13, 9, 8),         -- Commodore\Alt Release -> A4000T
-(14, 11, 8);        -- Escom\Alt Release -> A4000T
+(1, NULL, 2),    -- Root: Amiga Workbench (ID 2)
+(2, NULL, 3),    -- Root: Commodore (ID 3)
+(3, NULL, 4),    -- Root: Escom (ID 4)
+
+(4, 2, 5),       -- Amiga Workbench (ID 2) -> Alt Release (ID 5)
+(5, 2, 6),       -- Amiga Workbench (ID 2) -> Alt Release 2 (ID 6)
+(6, 2, 8),       -- Amiga Workbench (ID 2) -> A4000T (ID 8)
+(7, 2, 7),       -- Amiga Workbench (ID 2) -> HDD Installer (ID 7)
+
+(8, 3, 8),       -- Commodore (ID 3) -> A4000T (ID 8)
+(9, 3, 5),       -- Commodore (ID 3) -> Alt Release (ID 5)
+(10, 4, 8),      -- Escom (ID 4) -> A4000T (ID 8)
+(11, 4, 5),      -- Escom (ID 4) -> Alt Release (ID 5)
+(12, 5, 8);      -- Alt Release (ID 5) -> A4000T (ID 8)
+
 
 
 
