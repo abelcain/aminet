@@ -1,0 +1,8 @@
+ps
+anim
+prefs
+gadget
+library
+device
+info
+datatype

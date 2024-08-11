@@ -1,0 +1,91 @@
+```disk.info
+Utilities.info
+Utilities
+Utilities/MultiView.info
+Utilities/MultiView```
+
+Based on 'depth-first search' principles what do we know? 
+
+a) We know that 'utilities' is on root;
+b) we know that 'utilities' is a directory;
+c) we know that 'utilities' has a file extension named '.info';
+d) we know that 'utilities' has a file named 'MultiView' which has an '.info' extension;
+
+Let's build the SQL structure that might represent it fully
+
+
+TABLE A			
+1	dir	NULL	
+2	file	NULL	
+3	info	1	
+4	info	2	
+
+TABLE B			
+1	Utilities	NULL	3
+2	Multiview	1	4
+3   disk  NULL4
+
+regarding the structure what do we know?
+a) if it has a slash, it's a directory;
+b) that we have both directories and files with file extension named '.info'
+c) if it has no slash, it's a file.
+d) in one line it might have no slash if it is repeated elsewhere with a slash
+
+
+
+TABLE A			
+1	dir	NULL	
+2	file	NULL	
+3	info	1	
+4	info	2	
+
+I have table A set in mysql and accessible from script.
+```import mysql.connector
+
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  password=r"90'+iopº",
+  database="GPT"
+)
+
+mycursor = mydb.cursor()
+
+mycursor.execute("SELECT id FROM FileTypes WHERE type = '.info'")
+
+myresult = mycursor.fetchall()
+
+print(myresult)
+````
+```disk.info
+Utilities.info
+Utilities
+Utilities/MultiView.info
+Utilities/MultiView```
+
+I want to check the extensions against the table. if there's an extension it should be added to the table and then pick.
+
+A Table B named DirectoryStructure exists where the parsed data should be added:
+TABLE B			
+1	Utilities	NULL	3
+2	Multiview	1	4
+3   disk  NULL  4
+DirectoryStructure
+'id', 'name','parent_id','type'
+
+
+I got:
+disk.info
+Utilities.info
+Utilities
+Utilities
+	MultiView.info
+Utilities
+	MultiView
+
+can I improve it so that I got:
+disk.info
+Utilities.info
+Utilities
+	MultiView.info
+	MultiView
