@@ -1,8 +1,8 @@
+library
 ps
 anim
-prefs
 gadget
-library
 device
-info
+prefs
 datatype
+info
