@@ -4,22 +4,21 @@ from typing import List, Set
 from libs import connect_db, load, save
 from mysql.connector import Error
 
+# Global variable to control NULL handling
+USE_ZERO = True  # Set to True to use 0 instead of NULL, False to use NULL
+
 def fetch_lastID():
     global LAST_ID
     conn = connect_db()
     if conn:
         try:
             cursor = conn.cursor(dictionary=True)
-            # Existing query (unchanged)
-
-            # Add this after the existing query
             cursor.execute("SELECT MAX(id) AS max_id FROM aminet.directorystructure")
             result = cursor.fetchone()
             if result and result['max_id'] is not None:
                 LAST_ID = result['max_id']
             else:
                 LAST_ID = 0  # Or your desired default value
-
         finally:
             conn.close()
 
@@ -30,7 +29,6 @@ def fetch_types():
     if conn:
         try:
             cursor = conn.cursor(dictionary=True)
-            # Fetch the DIR ID first
             cursor.execute("SELECT id FROM types WHERE type = 'dir'")  # Case-sensitive search for 'dir'
             dir_id_result = cursor.fetchone()
             if dir_id_result:
@@ -70,16 +68,13 @@ def extract_types(paths: List[str]) -> Set[str]:
                         print(f"Error inserting type '{typ}': {e}")
 
         conn.commit()
-        #print(f"Inserted {inserted_count} types into the database.")
-
     except Error as e:
         print(f"Error: {e}")
-
     finally:
         if conn.is_connected():
             cursor.close()
             conn.close()
-            #print("Database connection closed.")
+
 def insert_types_to_db(types: Set[str]):
     """Insert extracted types into the database."""
     conn = connect_db()
@@ -104,6 +99,7 @@ def insert_types_to_db(types: Set[str]):
             cursor.close()
             conn.close()
             print("Database connection closed.")
+
 def get_or_create_directory_id(parent_id, name, dir_type, directory_structure):
     """Get existing directory ID or create a new directory record."""
     for item in directory_structure:
@@ -136,33 +132,31 @@ def insert_into_database(items):
 
         data_to_insert = []
         for item in items:
-            try:
-                id_value = int(item['ID']) if item['ID'] is not None else 0
-            except ValueError:
-                id_value = 0
+            # Determine values for ID and PARENT
+            id_value = int(item['ID']) if item['ID'] is not None else (0 if USE_ZERO else 'NULL')
+            parent_value = int(item['PARENT']) if item['PARENT'] not in [None, 'None'] else (0 if USE_ZERO else 'NULL')
 
-            try:
-                parent_value = int(item['PARENT']) if item['PARENT'] not in [None, 'None'] else 0
-            except ValueError:
-                parent_value = 0
-
-            parent_with_last = parent_value + LAST_ID if parent_value != 0 else 'NULL'
+            # Add LAST_ID to the values
+            id_with_last = id_value + LAST_ID
+            parent_with_last = parent_value + LAST_ID if parent_value != 0 else (0 if USE_ZERO else 'NULL')
 
             data_to_insert.append((parent_with_last, item['NAME'], item['TYPE']))
 
         cursor.executemany(add_directory, data_to_insert)
 
         conn.commit()
-        # print("Inserted items into the database.")
+        print("Inserted items into the database.")
     except Error as err:
         print(f"Error: {err}")
     finally:
         if conn.is_connected():
             cursor.close()
             conn.close()
+
 def load_paths(filepath: str) -> List[str]:
     """Load paths from a file."""
     return load(filepath)
+
 def list_dir(directory_structure):
     """Process the directory structure to return a list of unique base directories."""
     processed_set = set()
@@ -179,7 +173,7 @@ def list_dir(directory_structure):
 def process_file(file_path):
     """Process the file to extract and insert directory structure."""
     global LAST_ID
-    paths = load_paths("miniData.txt")
+    paths = load_paths("Data.txt")
     types = extract_types(paths)
     # insert_types_to_db(types)
     # Load and process data
@@ -206,26 +200,19 @@ def process_file(file_path):
     print("-" * 20)
     print("ID\tPARENT\tNAME\tTYPE")
     
-    
     for item in directory_structure:
         # Ensure ID is not None and can be converted to integer
-        try:
-            id_value = int(item['ID']) if item['ID'] is not None else 0
-        except ValueError:
-            id_value = 0
+        id_value = int(item['ID']) if item['ID'] is not None else (0 if USE_ZERO else 'NULL')
         
         # Ensure PARENT is not None and can be converted to integer
-        try:
-            parent_value = int(item['PARENT']) if item['PARENT'] not in [None, 'None'] else 0
-        except ValueError:
-            parent_value = 0
+        parent_value = int(item['PARENT']) if item['PARENT'] not in [None, 'None'] else (0 if USE_ZERO else 'NULL')
 
         # Add LAST_ID to the values
         id_with_last = id_value + LAST_ID
-        parent_with_last = parent_value + LAST_ID if parent_value != 0 else 'NULL'
+        parent_with_last = parent_value + LAST_ID if parent_value != 0 else (0 if USE_ZERO else 'NULL')
 
         # Print the formatted output
         print(f"{id_with_last}\t{parent_with_last}\t{item['NAME']}\t{item['TYPE']}")
 
 if __name__ == "__main__":
-    process_file("miniData.txt")
+    process_file("Data.txt")

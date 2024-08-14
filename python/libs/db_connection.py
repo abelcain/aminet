@@ -1,10 +1,12 @@
 import mysql.connector
 from mysql.connector import Error
+import platform
 
 DB_PARAMS ={
     'database': 'aminet',
     'user': 'root',
-    'password': '',
+    # 'password': '',
+    'password': 'JKLÇnm,.0',
     'host': '127.0.0.1',
     'port': '3306'
 }
